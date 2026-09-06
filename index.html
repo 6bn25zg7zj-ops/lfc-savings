@@ -42,7 +42,6 @@
     .status-unsettled { background: #ffebee; color: #c8102e; }
     .status-settled { background: #e0f2f1; color: #00796b; }
     
-    /* 🌟 追加：編集・削除ボタンのスタイル */
     .history-actions { margin-top: 10px; text-align: right; }
     .history-actions button { padding: 5px 12px; margin-left: 8px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; border: 1px solid #ccc; background: #fff; }
     .history-actions button.edit-btn { color: #00796b; border-color: #00796b; }
@@ -258,30 +257,25 @@
     }
   }
 
-  // 🌟 追加：編集機能
   function editLog(index) {
     const item = logs[index];
     
-    // 金額の編集
     let newAmountStr = prompt("金額を修正してください（半角数字）:", item.amount);
-    if (newAmountStr === null) return; // キャンセル時
+    if (newAmountStr === null) return; 
     let newAmount = parseInt(newAmountStr, 10);
     if (isNaN(newAmount)) {
       alert("有効な数字を入力してください。");
       return;
     }
 
-    // 詳細の編集
     let newDetails = prompt("詳細テキストを修正してください:", item.details);
-    if (newDetails === null) return; // キャンセル時
+    if (newDetails === null) return; 
 
-    // データの更新
     logs[index].amount = newAmount;
     logs[index].details = newDetails;
     saveData();
   }
 
-  // 🌟 追加：削除機能
   function deleteLog(index) {
     if (confirm("この記録を削除してもよろしいですか？\n※間違えて入力した場合などに使用してください。")) {
       logs.splice(index, 1);
@@ -289,7 +283,6 @@
     }
   }
 
-  // 共通の保存処理
   function saveData() {
     localStorage.setItem('lfc_savings_26_27', JSON.stringify(logs));
     updateUI();
@@ -306,13 +299,16 @@
     const historyEl = document.getElementById('historyList');
     historyEl.innerHTML = logs.map((item, index) => {
       
-      // 🌟 追加：アクションボタンのHTML
-      const actionButtons = `
-        <div class="history-actions">
-          <button type="button" class="edit-btn" onclick="editLog(${index})">✏️ 編集</button>
-          <button type="button" class="delete-btn" onclick="deleteLog(${index})">🗑️ 削除</button>
-        </div>
-      `;
+      // 🌟変更: 「未精算の記録」の場合のみ編集・削除ボタンをHTMLに追加する
+      let actionButtons = '';
+      if (item.type !== 'settlement' && !item.isSettled) {
+        actionButtons = `
+          <div class="history-actions">
+            <button type="button" class="edit-btn" onclick="editLog(${index})">✏️ 編集</button>
+            <button type="button" class="delete-btn" onclick="deleteLog(${index})">🗑️ 削除</button>
+          </div>
+        `;
+      }
 
       if (item.type === 'settlement') {
         return `
