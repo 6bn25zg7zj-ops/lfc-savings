@@ -41,6 +41,12 @@
     .status-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
     .status-unsettled { background: #ffebee; color: #c8102e; }
     .status-settled { background: #e0f2f1; color: #00796b; }
+    
+    /* 🌟 追加：編集・削除ボタンのスタイル */
+    .history-actions { margin-top: 10px; text-align: right; }
+    .history-actions button { padding: 5px 12px; margin-left: 8px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; border: 1px solid #ccc; background: #fff; }
+    .history-actions button.edit-btn { color: #00796b; border-color: #00796b; }
+    .history-actions button.delete-btn { color: #c8102e; border-color: #c8102e; }
   </style>
 </head>
 <body>
@@ -111,7 +117,6 @@
     <button type="button" class="submit-btn" onclick="saveMatch()">結果を記録する</button>
   </form>
 
-  <!-- 🌟 ここに特別ボーナスのセクションを追加しました -->
   <div class="bonus-section">
     <h3>🏆 特別ボーナス・ペナルティ</h3>
     <label>項目を選択
@@ -204,15 +209,12 @@
       isSettled: false
     };
     logs.unshift(entry);
-    localStorage.setItem('lfc_savings_26_27', JSON.stringify(logs));
-    updateUI();
-    document.getElementById('matchForm').reset();
+    saveData();
   }
 
-  // 🌟 特別ボーナス追加用の関数
   function addSpecialBonus() {
     const rawVal = document.getElementById('specialBonus').value;
-    const parts = rawVal.split('_'); // 例: "10000_CL 優勝" を [10000, "CL 優勝"] に分割
+    const parts = rawVal.split('_'); 
     const amount = parseInt(parts[0]);
     const details = parts[1];
 
@@ -225,8 +227,7 @@
       isSettled: false
     };
     logs.unshift(entry);
-    localStorage.setItem('lfc_savings_26_27', JSON.stringify(logs));
-    updateUI();
+    saveData();
     alert(`${details} (${amount >= 0 ? '+' : ''}${amount.toLocaleString()}円) を追加しました！`);
   }
 
@@ -253,9 +254,45 @@
         details: '未精算分の金額をまとめました'
       });
       
-      localStorage.setItem('lfc_savings_26_27', JSON.stringify(logs));
-      updateUI();
+      saveData();
     }
+  }
+
+  // 🌟 追加：編集機能
+  function editLog(index) {
+    const item = logs[index];
+    
+    // 金額の編集
+    let newAmountStr = prompt("金額を修正してください（半角数字）:", item.amount);
+    if (newAmountStr === null) return; // キャンセル時
+    let newAmount = parseInt(newAmountStr, 10);
+    if (isNaN(newAmount)) {
+      alert("有効な数字を入力してください。");
+      return;
+    }
+
+    // 詳細の編集
+    let newDetails = prompt("詳細テキストを修正してください:", item.details);
+    if (newDetails === null) return; // キャンセル時
+
+    // データの更新
+    logs[index].amount = newAmount;
+    logs[index].details = newDetails;
+    saveData();
+  }
+
+  // 🌟 追加：削除機能
+  function deleteLog(index) {
+    if (confirm("この記録を削除してもよろしいですか？\n※間違えて入力した場合などに使用してください。")) {
+      logs.splice(index, 1);
+      saveData();
+    }
+  }
+
+  // 共通の保存処理
+  function saveData() {
+    localStorage.setItem('lfc_savings_26_27', JSON.stringify(logs));
+    updateUI();
   }
 
   function updateUI() {
@@ -267,34 +304,41 @@
     document.getElementById('unsettledDisplay').textContent = unsettled.toLocaleString();
 
     const historyEl = document.getElementById('historyList');
-    historyEl.innerHTML = logs.map(item => {
+    historyEl.innerHTML = logs.map((item, index) => {
+      
+      // 🌟 追加：アクションボタンのHTML
+      const actionButtons = `
+        <div class="history-actions">
+          <button type="button" class="edit-btn" onclick="editLog(${index})">✏️ 編集</button>
+          <button type="button" class="delete-btn" onclick="deleteLog(${index})">🗑️ 削除</button>
+        </div>
+      `;
+
       if (item.type === 'settlement') {
         return `
           <div class="history-item settlement">
             <strong>${item.date} : 💰 精算完了 ＋${item.amount.toLocaleString()}円</strong><br>
             <span style="color:#666;">${item.details}</span>
+            ${actionButtons}
           </div>
         `;
       } else if (item.type === 'bonus') {
-        // 特別ボーナス用の表示
-        const badge = item.isSettled 
-          ? `<span class="status-badge status-settled">精算済</span>` 
-          : `<span class="status-badge status-unsettled">未精算</span>`;
+        const badge = item.isSettled ? `<span class="status-badge status-settled">精算済</span>` : `<span class="status-badge status-unsettled">未精算</span>`;
         const amountSign = item.amount > 0 ? '＋' : '';
         return `
           <div class="history-item special-bonus">
             <strong>${item.date} [🏆 特別] : ${amountSign}${item.amount.toLocaleString()}円 ${badge}</strong><br>
             <span style="color:#666;">${item.details}</span>
+            ${actionButtons}
           </div>
         `;
       } else {
-        const badge = item.isSettled 
-          ? `<span class="status-badge status-settled">精算済</span>` 
-          : `<span class="status-badge status-unsettled">未精算</span>`;
+        const badge = item.isSettled ? `<span class="status-badge status-settled">精算済</span>` : `<span class="status-badge status-unsettled">未精算</span>`;
         return `
           <div class="history-item">
             <strong>${item.date} [${item.score}] : ＋${item.amount.toLocaleString()}円 ${badge}</strong><br>
             <span style="color:#666;">${item.details}</span>
+            ${actionButtons}
           </div>
         `;
       }
