@@ -10,7 +10,6 @@
     header { background: #c8102e; color: #fff; padding: 15px; border-radius: 8px; text-align: center; }
     h1 { margin: 0; font-size: 1.5rem; }
     
-    /* 金額表示エリアのレイアウト変更 */
     .dashboard { display: flex; gap: 10px; margin: 20px 0; }
     .total-box { flex: 1; background: #e02030; color: #fff; padding: 15px; border-radius: 8px; text-align: center; }
     .unsettled-box { flex: 1; background: #333; color: #fff; padding: 15px; border-radius: 8px; text-align: center; }
@@ -18,20 +17,27 @@
     .amount-value { font-size: 1.8rem; font-weight: bold; }
     
     .section { border-bottom: 1px solid #eee; padding: 15px 0; }
-    .section h3 { margin: 0 0 10px; font-size: 1.1rem; color: #c8102e; }
+    .bonus-section { background-color: #fff9e6; border: 1px solid #ffe082; padding: 15px; border-radius: 8px; margin-top: 20px; }
+    .section h3, .bonus-section h3 { margin: 0 0 10px; font-size: 1.1rem; color: #c8102e; }
+    .bonus-section h3 { color: #d48b00; }
+    
     label { display: block; margin-bottom: 8px; font-size: 0.95rem; font-weight: bold; }
     select, input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    optgroup { font-weight: bold; color: #555; }
+    
     .score-inputs { display: flex; gap: 15px; }
     .score-inputs label { flex: 1; }
     .checkbox-group label { display: block; margin-bottom: 10px; font-weight: normal; cursor: pointer; }
     .checkbox-group input { transform: scale(1.2); margin-right: 8px; }
     
     button.submit-btn { width: 100%; background: #00b2a9; color: #fff; border: none; padding: 15px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+    button.bonus-btn { width: 100%; background: #fbc02d; color: #333; border: none; padding: 12px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 15px; }
     button.settle-btn { width: 100%; background: #ffc107; color: #333; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 15px; }
     
     .history { margin-top: 30px; }
     .history-item { background: #fafafa; border-left: 4px solid #c8102e; padding: 12px; border-radius: 4px; margin-bottom: 10px; font-size: 0.9rem; }
     .history-item.settlement { background: #fff3cd; border-left: 4px solid #ffc107; }
+    .history-item.special-bonus { border-left: 4px solid #fbc02d; background: #fffde7; }
     .status-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
     .status-unsettled { background: #ffebee; color: #c8102e; }
     .status-settled { background: #e0f2f1; color: #00796b; }
@@ -105,6 +111,36 @@
     <button type="button" class="submit-btn" onclick="saveMatch()">結果を記録する</button>
   </form>
 
+  <!-- 🌟 ここに特別ボーナスのセクションを追加しました -->
+  <div class="bonus-section">
+    <h3>🏆 特別ボーナス・ペナルティ</h3>
+    <label>項目を選択
+      <select id="specialBonus">
+        <optgroup label="④ チャンピオンズリーグ (CL)">
+          <option value="2000_CL 決勝トーナメント進出">CL 決勝トーナメント進出 (+2,000円)</option>
+          <option value="2000_CL ベスト8進出">CL ベスト8進出 (+2,000円)</option>
+          <option value="3000_CL ベスト4進出">CL ベスト4進出 (+3,000円)</option>
+          <option value="5000_CL 決勝進出">CL 決勝進出 (+5,000円)</option>
+          <option value="10000_CL 優勝">CL 優勝 (+10,000円)</option>
+        </optgroup>
+        <optgroup label="⑤ 国内カップ戦">
+          <option value="2000_FAカップ 決勝進出">FAカップ 決勝進出 (+2,000円)</option>
+          <option value="5000_FAカップ 優勝">FAカップ 優勝 (+5,000円)</option>
+          <option value="1000_カラバオカップ 決勝進出">カラバオカップ 決勝進出 (+1,000円)</option>
+          <option value="3000_カラバオカップ 優勝">カラバオカップ 優勝 (+3,000円)</option>
+        </optgroup>
+        <optgroup label="⑧ シーズン終了ボーナス">
+          <option value="10000_プレミアリーグ 優勝">プレミアリーグ 優勝 (+10,000円)</option>
+          <option value="3000_プレミアリーグ TOP4">プレミアリーグ TOP4フィニッシュ (+3,000円)</option>
+          <option value="3000_PL得点王 (LFCから)">PL得点王 (LFCから) (+3,000円)</option>
+          <option value="3000_PFA年間最優秀選手 (LFCから)">PFA年間最優秀選手賞 (LFCから) (+3,000円)</option>
+          <option value="-5000_シーズン無冠">シーズン無冠 (-5,000円)</option>
+        </optgroup>
+      </select>
+    </label>
+    <button type="button" class="bonus-btn" onclick="addSpecialBonus()">ボーナスを追加する</button>
+  </div>
+
   <div class="history">
     <h3>記録履歴</h3>
     <div id="historyList"></div>
@@ -165,12 +201,33 @@
       score: result.score,
       amount: result.amount,
       details: result.details.join(' / '),
-      isSettled: false // 新しいデータは未精算
+      isSettled: false
     };
     logs.unshift(entry);
     localStorage.setItem('lfc_savings_26_27', JSON.stringify(logs));
     updateUI();
     document.getElementById('matchForm').reset();
+  }
+
+  // 🌟 特別ボーナス追加用の関数
+  function addSpecialBonus() {
+    const rawVal = document.getElementById('specialBonus').value;
+    const parts = rawVal.split('_'); // 例: "10000_CL 優勝" を [10000, "CL 優勝"] に分割
+    const amount = parseInt(parts[0]);
+    const details = parts[1];
+
+    const entry = {
+      type: 'bonus',
+      date: new Date().toLocaleDateString(),
+      score: 'ボーナス',
+      amount: amount,
+      details: details,
+      isSettled: false
+    };
+    logs.unshift(entry);
+    localStorage.setItem('lfc_savings_26_27', JSON.stringify(logs));
+    updateUI();
+    alert(`${details} (${amount >= 0 ? '+' : ''}${amount.toLocaleString()}円) を追加しました！`);
   }
 
   function executeSettlement() {
@@ -183,14 +240,12 @@
     const settleAmount = unsettledLogs.reduce((sum, item) => sum + item.amount, 0);
     
     if(confirm(`未精算額 ${settleAmount.toLocaleString()}円 を精算完了にしますか？`)) {
-      // 既存の未精算データを精算済みにする
       logs.forEach(item => {
         if (item.type !== 'settlement' && !item.isSettled) {
           item.isSettled = true;
         }
       });
       
-      // 精算履歴を追加
       logs.unshift({
         type: 'settlement',
         date: new Date().toLocaleDateString(),
@@ -204,11 +259,8 @@
   }
 
   function updateUI() {
-    // 累計は「試合データ」だけの合計
     const matchLogs = logs.filter(item => item.type !== 'settlement');
     const total = matchLogs.reduce((sum, item) => sum + item.amount, 0);
-    
-    // 未精算額は「試合データ」のうち、isSettledがfalse（または未定義）の合計
     const unsettled = matchLogs.filter(item => !item.isSettled).reduce((sum, item) => sum + item.amount, 0);
     
     document.getElementById('totalDisplay').textContent = total.toLocaleString();
@@ -220,6 +272,18 @@
         return `
           <div class="history-item settlement">
             <strong>${item.date} : 💰 精算完了 ＋${item.amount.toLocaleString()}円</strong><br>
+            <span style="color:#666;">${item.details}</span>
+          </div>
+        `;
+      } else if (item.type === 'bonus') {
+        // 特別ボーナス用の表示
+        const badge = item.isSettled 
+          ? `<span class="status-badge status-settled">精算済</span>` 
+          : `<span class="status-badge status-unsettled">未精算</span>`;
+        const amountSign = item.amount > 0 ? '＋' : '';
+        return `
+          <div class="history-item special-bonus">
+            <strong>${item.date} [🏆 特別] : ${amountSign}${item.amount.toLocaleString()}円 ${badge}</strong><br>
             <span style="color:#666;">${item.details}</span>
           </div>
         `;
