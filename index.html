@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>L.F.C. 貯金アプリ 26-27</title>
+  <title>Liverpool貯金</title>
   <style>
     body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f7; color: #333; margin: 0; padding: 10px; }
     .container { max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -52,7 +52,7 @@
 
 <div class="container">
   <header>
-    <h1>26-27 L.F.C. 貯金リスト</h1>
+    <h1>Liverpool貯金</h1>
   </header>
 
   <div class="dashboard">
@@ -70,7 +70,7 @@
 
   <form id="matchForm">
     <div class="section">
-      <h3>① 試合結果（基本ルール＆対BIG6）</h3>
+      <h3>① 試合結果</h3>
       <label>大会
         <select id="competition">
           <option value="PL">プレミアリーグ</option>
@@ -120,20 +120,20 @@
     <h3>🏆 特別ボーナス・ペナルティ</h3>
     <label>項目を選択
       <select id="specialBonus">
-        <optgroup label="④ チャンピオンズリーグ (CL)">
+        <optgroup label="① チャンピオンズリーグ (CL)">
           <option value="2000_CL 決勝トーナメント進出">CL 決勝トーナメント進出 (+2,000円)</option>
           <option value="2000_CL ベスト8進出">CL ベスト8進出 (+2,000円)</option>
           <option value="3000_CL ベスト4進出">CL ベスト4進出 (+3,000円)</option>
           <option value="5000_CL 決勝進出">CL 決勝進出 (+5,000円)</option>
           <option value="10000_CL 優勝">CL 優勝 (+10,000円)</option>
         </optgroup>
-        <optgroup label="⑤ 国内カップ戦">
+        <optgroup label="② 国内カップ戦">
           <option value="2000_FAカップ 決勝進出">FAカップ 決勝進出 (+2,000円)</option>
           <option value="5000_FAカップ 優勝">FAカップ 優勝 (+5,000円)</option>
           <option value="1000_カラバオカップ 決勝進出">カラバオカップ 決勝進出 (+1,000円)</option>
           <option value="3000_カラバオカップ 優勝">カラバオカップ 優勝 (+3,000円)</option>
         </optgroup>
-        <optgroup label="⑧ シーズン終了ボーナス">
+        <optgroup label="③ シーズン終了ボーナス">
           <option value="10000_プレミアリーグ 優勝">プレミアリーグ 優勝 (+10,000円)</option>
           <option value="3000_プレミアリーグ TOP4">プレミアリーグ TOP4フィニッシュ (+3,000円)</option>
           <option value="3000_PL得点王 (LFCから)">PL得点王 (LFCから) (+3,000円)</option>
@@ -209,6 +209,7 @@
     };
     logs.unshift(entry);
     saveData();
+    document.getElementById('matchForm').reset();
   }
 
   function addSpecialBonus() {
@@ -299,7 +300,6 @@
     const historyEl = document.getElementById('historyList');
     historyEl.innerHTML = logs.map((item, index) => {
       
-      // 🌟変更: 「未精算の記録」の場合のみ編集・削除ボタンをHTMLに追加する
       let actionButtons = '';
       if (item.type !== 'settlement' && !item.isSettled) {
         actionButtons = `
