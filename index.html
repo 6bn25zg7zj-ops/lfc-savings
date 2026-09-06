@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L.F.C. 貯金アプリ 26-27</title>
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f7; color: #333; margin: 0; padding: 10px; }
+    .container { max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    header { background: #c8102e; color: #fff; padding: 15px; border-radius: 8px; text-align: center; }
+    h1 { margin: 0; font-size: 1.5rem; }
+    .total-box { background: #e02030; color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
+    .total-amount { font-size: 2.5rem; font-weight: bold; margin-top: 5px; }
+    .section { border-bottom: 1px solid #eee; padding: 15px 0; }
+    .section h3 { margin: 0 0 10px; font-size: 1.1rem; color: #c8102e; }
+    label { display: block; margin-bottom: 8px; font-size: 0.95rem; font-weight: bold; }
+    select, input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    .score-inputs { display: flex; gap: 15px; }
+    .score-inputs label { flex: 1; }
+    .checkbox-group label { display: block; margin-bottom: 10px; font-weight: normal; cursor: pointer; }
+    .checkbox-group input { transform: scale(1.2); margin-right: 8px; }
+    button.submit-btn { width: 100%; background: #00b2a9; color: #fff; border: none; padding: 15px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+    .history { margin-top: 30px; }
+    .history-item { background: #fafafa; border-left: 4px solid #c8102e; padding: 12px; border-radius: 4px; margin-bottom: 10px; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>26-27 L.F.C. 貯金リスト</h1>
+  </header>
+
+  <div class="total-box">
+    <div>現在の貯金総額</div>
+    <div class="total-amount"><span id="totalDisplay">0</span> 円</div>
+  </div>
+
+  <form id="matchForm">
+    <div class="section">
+      <h3>① 試合結果（基本ルール＆対BIG6）</h3>
+      <label>大会
+        <select id="competition">
+          <option value="PL">プレミアリーグ</option>
+          <option value="CL">チャンピオンズリーグ</option>
+          <option value="FA">FAカップ</option>
+          <option value="EFL">カラバオカップ</option>
+        </select>
+      </label>
+      <label>対戦相手
+        <select id="opponent">
+          <option value="other">その他</option>
+          <option value="MU">マンチェスター・ユナイテッド</option>
+          <option value="CHE">チェルシー</option>
+          <option value="TOT">トッテナム</option>
+          <option value="MCI">マンチェスター・シティ</option>
+          <option value="ARS">アーセナル</option>
+          <option value="EVE">エヴァートン (ダービー)</option>
+        </select>
+      </label>
+      <div class="score-inputs">
+        <label>LFC 得点 <input type="number" id="gf" min="0" value="0"></label>
+        <label>相手 失点 <input type="number" id="ga" min="0" value="0"></label>
+      </div>
+    </div>
+
+    <div class="section checkbox-group">
+      <h3>② 選手・プレーボーナス</h3>
+      <label><input type="checkbox" id="hattrick"> ハットトリック (+1,000円)</label>
+      <label><input type="checkbox" id="lateWinner"> 90分以降の決勝ゴール (+500円)</label>
+      <label><input type="checkbox" id="directFK"> 直接FKゴール (+500円)</label>
+      <label><input type="checkbox" id="academyGoal"> アカデミー選手のゴール (+500円)</label>
+      <label><input type="checkbox" id="pkStop"> GKのPKストップ (+500円)</label>
+      <label><input type="checkbox" id="gomezGoal"> ★ジョー・ゴメスのゴール (+10,000円)</label>
+    </div>
+
+    <div class="section">
+      <h3>③ お仕置き貯金 (ペナルティ)</h3>
+      <label>退場者数 (1人につき +500円)
+        <input type="number" id="redCards" min="0" value="0">
+      </label>
+    </div>
+
+    <button type="button" class="submit-btn" onclick="saveMatch()">結果を記録する</button>
+  </form>
+
+  <div class="history">
+    <h3>記録履歴</h3>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<script>
+  let logs = JSON.parse(localStorage.getItem('lfc_savings_26_27')) || [];
+
+  function calculateMatch() {
+    const comp = document.getElementById('competition').value;
+    const opp = document.getElementById('opponent').value;
+    const gf = parseInt(document.getElementById('gf').value) || 0;
+    const ga = parseInt(document.getElementById('ga').value) || 0;
+    const redCards = parseInt(document.getElementById('redCards').value) || 0;
+
+    let amount = 0;
+    let details = [];
+
+    // 勝敗・スコア判定
+    if (gf > ga) {
+      amount += 500; details.push('勝利 (+500)');
+      if (comp === 'CL') { amount += 500; details.push('CL勝利 (+500)'); }
+    } else if (gf === ga) {
+      amount += 100; details.push('引き分け (+100)');
+    } else {
+      amount += 500; details.push('敗戦 (+500)');
+      if ((ga - gf) >= 3) { amount += 1000; details.push('3点差以上敗戦 (+1,000)'); }
+      if (opp === 'MU') { amount += 1000; details.push('ユナイテッド敗戦 (+1,000)'); }
+      if (opp === 'EVE') { amount += 1000; details.push('エヴァートン敗戦 (+1,000)'); }
+    }
+
+    // ゴール数とクリーンシート
+    if (gf > 0) { amount += gf * 100; details.push(`ゴールx${gf} (+${gf * 100})`); }
+    if (ga === 0) { amount += 200; details.push('クリーンシート (+200)'); }
+    if (ga >= 3) { amount += 500; details.push('3失点以上 (+500)'); }
+
+    // BIG6・ダービーボーナス (リーグ戦・勝利時)
+    if (comp === 'PL' && gf > ga) {
+      if (['MU', 'CHE', 'TOT'].includes(opp)) { amount += 500; details.push('対BIG6勝利 (+500)'); }
+      if (['MCI', 'ARS', 'EVE'].includes(opp)) { amount += 1000; details.push('対BIG6/ダービー勝利 (+1,000)'); }
+    }
+
+    // プレーボーナス
+    if (document.getElementById('hattrick').checked) { amount += 1000; details.push('ハットトリック (+1,000)'); }
+    if (document.getElementById('lateWinner').checked) { amount += 500; details.push('90分以降決勝弾 (+500)'); }
+    if (document.getElementById('directFK').checked) { amount += 500; details.push('直接FK (+500)'); }
+    if (document.getElementById('academyGoal').checked) { amount += 500; details.push('アカデミー弾 (+500)'); }
+    if (document.getElementById('pkStop').checked) { amount += 500; details.push('PKストップ (+500)'); }
+    if (document.getElementById('gomezGoal').checked) { amount += 10000; details.push('ジョー・ゴメス弾 (+10,000)'); }
+
+    // 退場者
+    if (redCards > 0) { amount += redCards * 500; details.push(`退場者x${redCards} (+${redCards * 500})`); }
+
+    return { amount, details, score: `${gf} - ${ga}` };
+  }
+
+  function saveMatch() {
+    const result = calculateMatch();
+    const entry = {
+      date: new Date().toLocaleDateString(),
+      score: result.score,
+      amount: result.amount,
+      details: result.details.join(' / ')
+    };
+    logs.unshift(entry);
+    localStorage.setItem('lfc_savings_26_27', JSON.stringify(logs));
+    updateUI();
+    document.getElementById('matchForm').reset();
+  }
+
+  function updateUI() {
+    const total = logs.reduce((sum, item) => sum + item.amount, 0);
+    document.getElementById('totalDisplay').textContent = total.toLocaleString();
+
+    const historyEl = document.getElementById('historyList');
+    historyEl.innerHTML = logs.map(item => `
+      <div class="history-item">
+        <strong>${item.date} [${item.score}] : ＋${item.amount.toLocaleString()}円</strong><br>
+        <span style="color:#666;">${item.details}</span>
+      </div>
+    `).join('');
+  }
+
+  updateUI();
+</script>
+</body>
+</html>
