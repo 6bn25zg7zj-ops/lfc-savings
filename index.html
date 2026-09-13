@@ -22,7 +22,7 @@
     .bonus-section h3 { color: #d48b00; }
     
     label { display: block; margin-bottom: 8px; font-size: 0.95rem; font-weight: bold; }
-    select, input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    select, input[type="number"], input[type="date"] { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
     optgroup { font-weight: bold; color: #555; }
     
     .score-inputs { display: flex; gap: 15px; }
@@ -71,6 +71,11 @@
   <form id="matchForm">
     <div class="section">
       <h3>① 試合結果</h3>
+      <!-- 🌟 追加：試合日の入力欄 -->
+      <label>試合日
+        <input type="date" id="matchDate" required>
+      </label>
+      
       <label>大会
         <select id="competition">
           <option value="PL">プレミアリーグ</option>
@@ -118,6 +123,11 @@
 
   <div class="bonus-section">
     <h3>🏆 特別ボーナス・ペナルティ</h3>
+    <!-- 🌟 追加：ボーナス発生日の入力欄 -->
+    <label>発生日
+      <input type="date" id="bonusDate" required>
+    </label>
+    
     <label>項目を選択
       <select id="specialBonus">
         <optgroup label="① チャンピオンズリーグ (CL)">
@@ -153,6 +163,21 @@
 
 <script>
   let logs = JSON.parse(localStorage.getItem('lfc_savings_26_27')) || [];
+
+  // 🌟 追加：今日の日付をYYYY-MM-DD形式で取得してセットする関数
+  function setDefaultDate() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+    
+    document.getElementById('matchDate').value = dateStr;
+    document.getElementById('bonusDate').value = dateStr;
+  }
+
+  // 画面を開いた時に今日の日付をセット
+  setDefaultDate();
 
   function calculateMatch() {
     const comp = document.getElementById('competition').value;
@@ -199,9 +224,13 @@
 
   function saveMatch() {
     const result = calculateMatch();
+    // 🌟 修正：選択された日付を取得して整形する
+    const rawDate = document.getElementById('matchDate').value;
+    const recordDate = rawDate ? new Date(rawDate).toLocaleDateString('ja-JP') : new Date().toLocaleDateString('ja-JP');
+
     const entry = {
       type: 'match',
-      date: new Date().toLocaleDateString(),
+      date: recordDate,
       score: result.score,
       amount: result.amount,
       details: result.details.join(' / '),
@@ -210,6 +239,7 @@
     logs.unshift(entry);
     saveData();
     document.getElementById('matchForm').reset();
+    setDefaultDate(); // リセット後に再び今日の日付をセット
   }
 
   function addSpecialBonus() {
@@ -218,9 +248,13 @@
     const amount = parseInt(parts[0]);
     const details = parts[1];
 
+    // 🌟 修正：選択された日付を取得
+    const rawDate = document.getElementById('bonusDate').value;
+    const recordDate = rawDate ? new Date(rawDate).toLocaleDateString('ja-JP') : new Date().toLocaleDateString('ja-JP');
+
     const entry = {
       type: 'bonus',
-      date: new Date().toLocaleDateString(),
+      date: recordDate,
       score: 'ボーナス',
       amount: amount,
       details: details,
@@ -228,6 +262,7 @@
     };
     logs.unshift(entry);
     saveData();
+    setDefaultDate();
     alert(`${details} (${amount >= 0 ? '+' : ''}${amount.toLocaleString()}円) を追加しました！`);
   }
 
@@ -249,7 +284,7 @@
       
       logs.unshift({
         type: 'settlement',
-        date: new Date().toLocaleDateString(),
+        date: new Date().toLocaleDateString('ja-JP'), // 精算日はそのまま今日で記録
         amount: settleAmount,
         details: '未精算分の金額をまとめました'
       });
