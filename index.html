@@ -7,17 +7,26 @@
   <style>
     body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f7; color: #333; margin: 0; padding: 10px; }
     .container { max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    header { background: #c8102e; color: #fff; padding: 15px; border-radius: 8px; text-align: center; }
+    header { background: #c8102e; color: #fff; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
     h1 { margin: 0; font-size: 1.5rem; }
     
-    .dashboard { display: flex; gap: 10px; margin: 20px 0; }
+    /* 画面切り替え用のクラス */
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+    
+    .dashboard { display: flex; gap: 10px; margin-bottom: 20px; }
     .total-box { flex: 1; background: #e02030; color: #fff; padding: 15px; border-radius: 8px; text-align: center; }
     .unsettled-box { flex: 1; background: #333; color: #fff; padding: 15px; border-radius: 8px; text-align: center; }
     .amount-label { font-size: 0.9rem; margin-bottom: 5px; }
     .amount-value { font-size: 1.8rem; font-weight: bold; }
     
+    .action-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+    .action-buttons button { flex: 1; padding: 15px; font-size: 1rem; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; color: #fff; }
+    .btn-add-match { background: #00b2a9; }
+    .btn-add-bonus { background: #fbc02d; color: #333 !important; }
+    
     .section { border-bottom: 1px solid #eee; padding: 15px 0; }
-    .bonus-section { background-color: #fff9e6; border: 1px solid #ffe082; padding: 15px; border-radius: 8px; margin-top: 20px; }
+    .bonus-section { background-color: #fff9e6; border: 1px solid #ffe082; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
     .section h3, .bonus-section h3 { margin: 0 0 10px; font-size: 1.1rem; color: #c8102e; }
     .bonus-section h3 { color: #d48b00; }
     
@@ -30,11 +39,14 @@
     .checkbox-group label { display: block; margin-bottom: 10px; font-weight: normal; cursor: pointer; }
     .checkbox-group input { transform: scale(1.2); margin-right: 8px; }
     
-    button.submit-btn { width: 100%; background: #00b2a9; color: #fff; border: none; padding: 15px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 20px; }
-    button.bonus-btn { width: 100%; background: #fbc02d; color: #333; border: none; padding: 12px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 15px; }
-    button.settle-btn { width: 100%; background: #ffc107; color: #333; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 15px; }
+    .form-actions { margin-top: 25px; display: flex; flex-direction: column; gap: 10px; }
+    button.submit-btn { width: 100%; background: #00b2a9; color: #fff; border: none; padding: 15px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+    button.submit-bonus-btn { width: 100%; background: #fbc02d; color: #333; border: none; padding: 15px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+    button.cancel-btn { width: 100%; background: #e0e0e0; color: #333; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+    button.settle-btn { width: 100%; background: #ffc107; color: #333; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
     
-    .history { margin-top: 30px; }
+    .history { margin-top: 20px; }
+    .history h3 { color: #333; border-bottom: 2px solid #c8102e; padding-bottom: 5px; margin-bottom: 15px; }
     .history-item { background: #fafafa; border-left: 4px solid #c8102e; padding: 12px; border-radius: 4px; margin-bottom: 10px; font-size: 0.9rem; }
     .history-item.settlement { background: #fff3cd; border-left: 4px solid #ffc107; }
     .history-item.special-bonus { border-left: 4px solid #fbc02d; background: #fffde7; }
@@ -55,140 +67,215 @@
     <h1>Liverpool貯金</h1>
   </header>
 
-  <div class="dashboard">
-    <div class="total-box">
-      <div class="amount-label">シーズン累計</div>
-      <div class="amount-value"><span id="totalDisplay">0</span> 円</div>
-    </div>
-    <div class="unsettled-box">
-      <div class="amount-label">未精算（今回まとめる額）</div>
-      <div class="amount-value"><span id="unsettledDisplay">0</span> 円</div>
-    </div>
-  </div>
-
-  <button type="button" class="settle-btn" onclick="executeSettlement()">💰 15日/月末の精算を完了する</button>
-
-  <form id="matchForm">
-    <div class="section">
-      <h3>① 試合結果</h3>
-      <!-- 🌟 追加：試合日の入力欄 -->
-      <label>試合日
-        <input type="date" id="matchDate" required>
-      </label>
-      
-      <label>大会
-        <select id="competition">
-          <option value="PL">プレミアリーグ</option>
-          <option value="CL">チャンピオンズリーグ</option>
-          <option value="FA">FAカップ</option>
-          <option value="EFL">カラバオカップ</option>
-        </select>
-      </label>
-      <label>対戦相手
-        <select id="opponent">
-          <option value="other">その他</option>
-          <option value="MU">マンチェスター・ユナイテッド</option>
-          <option value="CHE">チェルシー</option>
-          <option value="TOT">トッテナム</option>
-          <option value="MCI">マンチェスター・シティ</option>
-          <option value="ARS">アーセナル</option>
-          <option value="EVE">エヴァートン (ダービー)</option>
-        </select>
-      </label>
-      <div class="score-inputs">
-        <label>LFC 得点 <input type="number" id="gf" min="0" value="0"></label>
-        <label>相手 失点 <input type="number" id="ga" min="0" value="0"></label>
+  <!-- ▼ 一覧（ダッシュボード）画面 ▼ -->
+  <div id="view-dashboard" class="view-section active">
+    <div class="dashboard">
+      <div class="total-box">
+        <div class="amount-label">シーズン累計</div>
+        <div class="amount-value"><span id="totalDisplay">0</span> 円</div>
+      </div>
+      <div class="unsettled-box">
+        <div class="amount-label">未精算（今回まとめる額）</div>
+        <div class="amount-value"><span id="unsettledDisplay">0</span> 円</div>
       </div>
     </div>
 
-    <div class="section checkbox-group">
-      <h3>② 選手・プレーボーナス</h3>
-      <label><input type="checkbox" id="hattrick"> ハットトリック (+1,000円)</label>
-      <label><input type="checkbox" id="lateWinner"> 90分以降の決勝ゴール (+500円)</label>
-      <label><input type="checkbox" id="directFK"> 直接FKゴール (+500円)</label>
-      <label><input type="checkbox" id="academyGoal"> アカデミー選手のゴール (+500円)</label>
-      <label><input type="checkbox" id="pkStop"> GKのPKストップ (+500円)</label>
-      <label><input type="checkbox" id="gomezGoal"> ★ジョー・ゴメスのゴール (+10,000円)</label>
+    <button type="button" class="settle-btn" onclick="executeSettlement()">💰 15日/月末の精算を完了する</button>
+
+    <div class="action-buttons">
+      <button type="button" class="btn-add-match" onclick="openMatchForm()">⚽ 試合結果を追加</button>
+      <button type="button" class="btn-add-bonus" onclick="openBonusForm()">🏆 特別ボーナス追加</button>
     </div>
 
-    <div class="section">
-      <h3>③ お仕置き貯金 (ペナルティ)</h3>
-      <label>退場者数 (1人につき +500円)
-        <input type="number" id="redCards" min="0" value="0">
+    <div class="history">
+      <h3>記録履歴</h3>
+      <div id="historyList"></div>
+    </div>
+  </div>
+  <!-- ▲ 一覧（ダッシュボード）画面 終了 ▲ -->
+
+
+  <!-- ▼ 試合結果 入力・編集フォーム画面 ▼ -->
+  <div id="view-match-form" class="view-section">
+    <h2 id="matchFormTitle" style="text-align:center; color:#c8102e; margin-top:0;">試合結果の入力</h2>
+    <form id="matchForm">
+      <div class="section">
+        <h3>① 試合結果</h3>
+        <label>試合日
+          <input type="date" id="matchDate" required>
+        </label>
+        <label>大会
+          <select id="competition">
+            <option value="PL">プレミアリーグ</option>
+            <option value="CL">チャンピオンズリーグ</option>
+            <option value="FA">FAカップ</option>
+            <option value="EFL">カラバオカップ</option>
+          </select>
+        </label>
+        <label>対戦相手
+          <select id="opponent">
+            <option value="other">その他</option>
+            <option value="MU">マンチェスター・ユナイテッド</option>
+            <option value="CHE">チェルシー</option>
+            <option value="TOT">トッテナム</option>
+            <option value="MCI">マンチェスター・シティ</option>
+            <option value="ARS">アーセナル</option>
+            <option value="EVE">エヴァートン (ダービー)</option>
+          </select>
+        </label>
+        <div class="score-inputs">
+          <label>LFC 得点 <input type="number" id="gf" min="0" value="0"></label>
+          <label>相手 失点 <input type="number" id="ga" min="0" value="0"></label>
+        </div>
+      </div>
+
+      <div class="section checkbox-group">
+        <h3>② 選手・プレーボーナス</h3>
+        <label><input type="checkbox" id="hattrick"> ハットトリック (+1,000円)</label>
+        <label><input type="checkbox" id="lateWinner"> 90分以降の決勝ゴール (+500円)</label>
+        <label><input type="checkbox" id="directFK"> 直接FKゴール (+500円)</label>
+        <label><input type="checkbox" id="academyGoal"> アカデミー選手のゴール (+500円)</label>
+        <label><input type="checkbox" id="pkStop"> GKのPKストップ (+500円)</label>
+        <label><input type="checkbox" id="gomezGoal"> ★ジョー・ゴメスのゴール (+10,000円)</label>
+      </div>
+
+      <div class="section">
+        <h3>③ お仕置き貯金 (ペナルティ)</h3>
+        <label>退場者数 (1人につき +500円)
+          <input type="number" id="redCards" min="0" value="0">
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="submit-btn" onclick="saveMatch()">記録を保存する</button>
+        <button type="button" class="cancel-btn" onclick="showDashboard()">キャンセル</button>
+      </div>
+    </form>
+  </div>
+  <!-- ▲ 試合結果 入力・編集フォーム画面 終了 ▲ -->
+
+
+  <!-- ▼ 特別ボーナス 入力・編集フォーム画面 ▼ -->
+  <div id="view-bonus-form" class="view-section">
+    <h2 id="bonusFormTitle" style="text-align:center; color:#d48b00; margin-top:0;">特別ボーナスの入力</h2>
+    <div class="bonus-section">
+      <label>発生日
+        <input type="date" id="bonusDate" required>
+      </label>
+      <label>項目を選択
+        <select id="specialBonus">
+          <optgroup label="① チャンピオンズリーグ (CL)">
+            <option value="2000_CL 決勝トーナメント進出">CL 決勝トーナメント進出 (+2,000円)</option>
+            <option value="2000_CL ベスト8進出">CL ベスト8進出 (+2,000円)</option>
+            <option value="3000_CL ベスト4進出">CL ベスト4進出 (+3,000円)</option>
+            <option value="5000_CL 決勝進出">CL 決勝進出 (+5,000円)</option>
+            <option value="10000_CL 優勝">CL 優勝 (+10,000円)</option>
+          </optgroup>
+          <optgroup label="② 国内カップ戦">
+            <option value="2000_FAカップ 決勝進出">FAカップ 決勝進出 (+2,000円)</option>
+            <option value="5000_FAカップ 優勝">FAカップ 優勝 (+5,000円)</option>
+            <option value="1000_カラバオカップ 決勝進出">カラバオカップ 決勝進出 (+1,000円)</option>
+            <option value="3000_カラバオカップ 優勝">カラバオカップ 優勝 (+3,000円)</option>
+          </optgroup>
+          <optgroup label="③ シーズン終了ボーナス">
+            <option value="10000_プレミアリーグ 優勝">プレミアリーグ 優勝 (+10,000円)</option>
+            <option value="3000_プレミアリーグ TOP4">プレミアリーグ TOP4フィニッシュ (+3,000円)</option>
+            <option value="3000_PL得点王 (LFCから)">PL得点王 (LFCから) (+3,000円)</option>
+            <option value="3000_PFA年間最優秀選手 (LFCから)">PFA年間最優秀選手賞 (LFCから) (+3,000円)</option>
+            <option value="-5000_シーズン無冠">シーズン無冠 (-5,000円)</option>
+          </optgroup>
+        </select>
       </label>
     </div>
-
-    <button type="button" class="submit-btn" onclick="saveMatch()">結果を記録する</button>
-  </form>
-
-  <div class="bonus-section">
-    <h3>🏆 特別ボーナス・ペナルティ</h3>
-    <!-- 🌟 追加：ボーナス発生日の入力欄 -->
-    <label>発生日
-      <input type="date" id="bonusDate" required>
-    </label>
-    
-    <label>項目を選択
-      <select id="specialBonus">
-        <optgroup label="① チャンピオンズリーグ (CL)">
-          <option value="2000_CL 決勝トーナメント進出">CL 決勝トーナメント進出 (+2,000円)</option>
-          <option value="2000_CL ベスト8進出">CL ベスト8進出 (+2,000円)</option>
-          <option value="3000_CL ベスト4進出">CL ベスト4進出 (+3,000円)</option>
-          <option value="5000_CL 決勝進出">CL 決勝進出 (+5,000円)</option>
-          <option value="10000_CL 優勝">CL 優勝 (+10,000円)</option>
-        </optgroup>
-        <optgroup label="② 国内カップ戦">
-          <option value="2000_FAカップ 決勝進出">FAカップ 決勝進出 (+2,000円)</option>
-          <option value="5000_FAカップ 優勝">FAカップ 優勝 (+5,000円)</option>
-          <option value="1000_カラバオカップ 決勝進出">カラバオカップ 決勝進出 (+1,000円)</option>
-          <option value="3000_カラバオカップ 優勝">カラバオカップ 優勝 (+3,000円)</option>
-        </optgroup>
-        <optgroup label="③ シーズン終了ボーナス">
-          <option value="10000_プレミアリーグ 優勝">プレミアリーグ 優勝 (+10,000円)</option>
-          <option value="3000_プレミアリーグ TOP4">プレミアリーグ TOP4フィニッシュ (+3,000円)</option>
-          <option value="3000_PL得点王 (LFCから)">PL得点王 (LFCから) (+3,000円)</option>
-          <option value="3000_PFA年間最優秀選手 (LFCから)">PFA年間最優秀選手賞 (LFCから) (+3,000円)</option>
-          <option value="-5000_シーズン無冠">シーズン無冠 (-5,000円)</option>
-        </optgroup>
-      </select>
-    </label>
-    <button type="button" class="bonus-btn" onclick="addSpecialBonus()">ボーナスを追加する</button>
+    <div class="form-actions">
+      <button type="button" class="submit-bonus-btn" onclick="saveSpecialBonus()">ボーナスを保存する</button>
+      <button type="button" class="cancel-btn" onclick="showDashboard()">キャンセル</button>
+    </div>
   </div>
+  <!-- ▲ 特別ボーナス 入力・編集フォーム画面 終了 ▲ -->
 
-  <div class="history">
-    <h3>記録履歴</h3>
-    <div id="historyList"></div>
-  </div>
 </div>
 
 <script>
   let logs = JSON.parse(localStorage.getItem('lfc_savings_26_27')) || [];
+  let editingIndex = -1; // -1:新規作成, 0以上:編集中のインデックス
 
-  // 🌟 追加：今日の日付をYYYY-MM-DD形式で取得してセットする関数
-  function setDefaultDate() {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}-${mm}-${dd}`;
-    
-    document.getElementById('matchDate').value = dateStr;
-    document.getElementById('bonusDate').value = dateStr;
+  // --- 画面切り替えロジック ---
+  function showView(viewId) {
+    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+    window.scrollTo(0, 0); // 画面トップへスクロール
   }
 
-  // 画面を開いた時に今日の日付をセット
-  setDefaultDate();
+  function showDashboard() {
+    updateUI();
+    showView('view-dashboard');
+    editingIndex = -1;
+  }
 
-  function calculateMatch() {
+  // --- 日付のユーティリティ ---
+  function getTodayString() {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  }
+
+  // --- 試合結果フォームの処理 ---
+  function openMatchForm(index = -1) {
+    editingIndex = index;
+    const form = document.getElementById('matchForm');
+    
+    if (index === -1) {
+      // 新規入力時
+      document.getElementById('matchFormTitle').textContent = '試合結果の記録';
+      form.reset();
+      document.getElementById('matchDate').value = getTodayString();
+    } else {
+      // 編集時：保存されている rawData をフォームに復元する
+      document.getElementById('matchFormTitle').textContent = '試合結果の編集';
+      const log = logs[index];
+      if (!log.rawData) {
+        alert("このデータは古い形式で保存されているため、詳細フォームでの編集ができません。一度削除して入力し直してください。");
+        return;
+      }
+      
+      const r = log.rawData;
+      document.getElementById('matchDate').value = r.matchDate || getTodayString();
+      document.getElementById('competition').value = r.competition;
+      document.getElementById('opponent').value = r.opponent;
+      document.getElementById('gf').value = r.gf;
+      document.getElementById('ga').value = r.ga;
+      document.getElementById('redCards').value = r.redCards;
+      
+      document.getElementById('hattrick').checked = r.hattrick;
+      document.getElementById('lateWinner').checked = r.lateWinner;
+      document.getElementById('directFK').checked = r.directFK;
+      document.getElementById('academyGoal').checked = r.academyGoal;
+      document.getElementById('pkStop').checked = r.pkStop;
+      document.getElementById('gomezGoal').checked = r.gomezGoal;
+    }
+    showView('view-match-form');
+  }
+
+  function saveMatch() {
+    // フォームの値を取得
+    const matchDateStr = document.getElementById('matchDate').value || getTodayString();
     const comp = document.getElementById('competition').value;
     const opp = document.getElementById('opponent').value;
     const gf = parseInt(document.getElementById('gf').value) || 0;
     const ga = parseInt(document.getElementById('ga').value) || 0;
     const redCards = parseInt(document.getElementById('redCards').value) || 0;
 
+    const hattrick = document.getElementById('hattrick').checked;
+    const lateWinner = document.getElementById('lateWinner').checked;
+    const directFK = document.getElementById('directFK').checked;
+    const academyGoal = document.getElementById('academyGoal').checked;
+    const pkStop = document.getElementById('pkStop').checked;
+    const gomezGoal = document.getElementById('gomezGoal').checked;
+
     let amount = 0;
     let details = [];
 
+    // 計算ロジック
     if (gf > ga) {
       amount += 500; details.push('勝利 (+500)');
       if (comp === 'CL') { amount += 500; details.push('CL勝利 (+500)'); }
@@ -210,118 +297,111 @@
       if (['MCI', 'ARS', 'EVE'].includes(opp)) { amount += 1000; details.push('対BIG6/ダービー勝利 (+1,000)'); }
     }
 
-    if (document.getElementById('hattrick').checked) { amount += 1000; details.push('ハットトリック (+1,000)'); }
-    if (document.getElementById('lateWinner').checked) { amount += 500; details.push('90分以降決勝弾 (+500)'); }
-    if (document.getElementById('directFK').checked) { amount += 500; details.push('直接FK (+500)'); }
-    if (document.getElementById('academyGoal').checked) { amount += 500; details.push('アカデミー弾 (+500)'); }
-    if (document.getElementById('pkStop').checked) { amount += 500; details.push('PKストップ (+500)'); }
-    if (document.getElementById('gomezGoal').checked) { amount += 10000; details.push('ジョー・ゴメス弾 (+10,000)'); }
-
+    if (hattrick) { amount += 1000; details.push('ハットトリック (+1,000)'); }
+    if (lateWinner) { amount += 500; details.push('90分以降決勝弾 (+500)'); }
+    if (directFK) { amount += 500; details.push('直接FK (+500)'); }
+    if (academyGoal) { amount += 500; details.push('アカデミー弾 (+500)'); }
+    if (pkStop) { amount += 500; details.push('PKストップ (+500)'); }
+    if (gomezGoal) { amount += 10000; details.push('ジョー・ゴメス弾 (+10,000)'); }
     if (redCards > 0) { amount += redCards * 500; details.push(`退場者x${redCards} (+${redCards * 500})`); }
 
-    return { amount, details, score: `${gf} - ${ga}` };
-  }
+    // 後で編集できるように、入力元の生データ（rawData）も一緒に保存する
+    const rawData = { matchDate: matchDateStr, competition: comp, opponent: opp, gf, ga, redCards, hattrick, lateWinner, directFK, academyGoal, pkStop, gomezGoal };
+    const recordDate = new Date(matchDateStr).toLocaleDateString('ja-JP');
 
-  function saveMatch() {
-    const result = calculateMatch();
-    // 🌟 修正：選択された日付を取得して整形する
-    const rawDate = document.getElementById('matchDate').value;
-    const recordDate = rawDate ? new Date(rawDate).toLocaleDateString('ja-JP') : new Date().toLocaleDateString('ja-JP');
+    const isSettled = editingIndex >= 0 ? logs[editingIndex].isSettled : false;
 
-    const entry = {
-      type: 'match',
-      date: recordDate,
-      score: result.score,
-      amount: result.amount,
-      details: result.details.join(' / '),
-      isSettled: false
-    };
-    logs.unshift(entry);
+    const entry = { type: 'match', date: recordDate, score: `${gf} - ${ga}`, amount, details: details.join(' / '), isSettled, rawData };
+
+    if (editingIndex >= 0) {
+      logs[editingIndex] = entry; // 編集時は上書き
+    } else {
+      logs.unshift(entry); // 新規時は追加
+    }
+    
     saveData();
-    document.getElementById('matchForm').reset();
-    setDefaultDate(); // リセット後に再び今日の日付をセット
+    showDashboard();
   }
 
-  function addSpecialBonus() {
+  // --- 特別ボーナスフォームの処理 ---
+  function openBonusForm(index = -1) {
+    editingIndex = index;
+    if (index === -1) {
+      document.getElementById('bonusFormTitle').textContent = '特別ボーナスの記録';
+      document.getElementById('bonusDate').value = getTodayString();
+      document.getElementById('specialBonus').selectedIndex = 0;
+    } else {
+      document.getElementById('bonusFormTitle').textContent = '特別ボーナスの編集';
+      const log = logs[index];
+      if (!log.rawData) {
+        alert("このデータは古い形式のため詳細編集ができません。"); return;
+      }
+      document.getElementById('bonusDate').value = log.rawData.bonusDate || getTodayString();
+      document.getElementById('specialBonus').value = log.rawData.specialBonusValue;
+    }
+    showView('view-bonus-form');
+  }
+
+  function saveSpecialBonus() {
+    const bonusDateStr = document.getElementById('bonusDate').value || getTodayString();
     const rawVal = document.getElementById('specialBonus').value;
     const parts = rawVal.split('_'); 
     const amount = parseInt(parts[0]);
     const details = parts[1];
 
-    // 🌟 修正：選択された日付を取得
-    const rawDate = document.getElementById('bonusDate').value;
-    const recordDate = rawDate ? new Date(rawDate).toLocaleDateString('ja-JP') : new Date().toLocaleDateString('ja-JP');
+    const rawData = { bonusDate: bonusDateStr, specialBonusValue: rawVal };
+    const recordDate = new Date(bonusDateStr).toLocaleDateString('ja-JP');
+    const isSettled = editingIndex >= 0 ? logs[editingIndex].isSettled : false;
 
-    const entry = {
-      type: 'bonus',
-      date: recordDate,
-      score: 'ボーナス',
-      amount: amount,
-      details: details,
-      isSettled: false
-    };
-    logs.unshift(entry);
+    const entry = { type: 'bonus', date: recordDate, score: 'ボーナス', amount, details, isSettled, rawData };
+
+    if (editingIndex >= 0) {
+      logs[editingIndex] = entry;
+    } else {
+      logs.unshift(entry);
+    }
+    
     saveData();
-    setDefaultDate();
-    alert(`${details} (${amount >= 0 ? '+' : ''}${amount.toLocaleString()}円) を追加しました！`);
+    showDashboard();
   }
 
+  // --- 共通の処理（精算・削除・保存・描画） ---
   function executeSettlement() {
     const unsettledLogs = logs.filter(item => (item.type !== 'settlement' && !item.isSettled));
     if (unsettledLogs.length === 0) {
-      alert("精算する未精算の記録がありません。");
-      return;
+      alert("精算する未精算の記録がありません。"); return;
     }
-    
     const settleAmount = unsettledLogs.reduce((sum, item) => sum + item.amount, 0);
     
     if(confirm(`未精算額 ${settleAmount.toLocaleString()}円 を精算完了にしますか？`)) {
       logs.forEach(item => {
-        if (item.type !== 'settlement' && !item.isSettled) {
-          item.isSettled = true;
-        }
+        if (item.type !== 'settlement' && !item.isSettled) { item.isSettled = true; }
       });
-      
       logs.unshift({
-        type: 'settlement',
-        date: new Date().toLocaleDateString('ja-JP'), // 精算日はそのまま今日で記録
-        amount: settleAmount,
-        details: '未精算分の金額をまとめました'
+        type: 'settlement', date: new Date().toLocaleDateString('ja-JP'), amount: settleAmount, details: '未精算分の金額をまとめました'
       });
-      
       saveData();
+      showDashboard();
     }
   }
 
-  function editLog(index) {
-    const item = logs[index];
-    
-    let newAmountStr = prompt("金額を修正してください（半角数字）:", item.amount);
-    if (newAmountStr === null) return; 
-    let newAmount = parseInt(newAmountStr, 10);
-    if (isNaN(newAmount)) {
-      alert("有効な数字を入力してください。");
-      return;
-    }
-
-    let newDetails = prompt("詳細テキストを修正してください:", item.details);
-    if (newDetails === null) return; 
-
-    logs[index].amount = newAmount;
-    logs[index].details = newDetails;
-    saveData();
+  function editLogRouter(index) {
+    // データのタイプに応じて適切なフォームを開く
+    const type = logs[index].type;
+    if (type === 'match') openMatchForm(index);
+    else if (type === 'bonus') openBonusForm(index);
   }
 
   function deleteLog(index) {
-    if (confirm("この記録を削除してもよろしいですか？\n※間違えて入力した場合などに使用してください。")) {
+    if (confirm("この記録を削除してもよろしいですか？")) {
       logs.splice(index, 1);
       saveData();
+      showDashboard();
     }
   }
 
   function saveData() {
     localStorage.setItem('lfc_savings_26_27', JSON.stringify(logs));
-    updateUI();
   }
 
   function updateUI() {
@@ -334,49 +414,31 @@
 
     const historyEl = document.getElementById('historyList');
     historyEl.innerHTML = logs.map((item, index) => {
-      
       let actionButtons = '';
       if (item.type !== 'settlement' && !item.isSettled) {
         actionButtons = `
           <div class="history-actions">
-            <button type="button" class="edit-btn" onclick="editLog(${index})">✏️ 編集</button>
+            <button type="button" class="edit-btn" onclick="editLogRouter(${index})">✏️ 編集</button>
             <button type="button" class="delete-btn" onclick="deleteLog(${index})">🗑️ 削除</button>
           </div>
         `;
       }
 
       if (item.type === 'settlement') {
-        return `
-          <div class="history-item settlement">
-            <strong>${item.date} : 💰 精算完了 ＋${item.amount.toLocaleString()}円</strong><br>
-            <span style="color:#666;">${item.details}</span>
-            ${actionButtons}
-          </div>
-        `;
+        return `<div class="history-item settlement"><strong>${item.date} : 💰 精算完了 ＋${item.amount.toLocaleString()}円</strong><br><span style="color:#666;">${item.details}</span>${actionButtons}</div>`;
       } else if (item.type === 'bonus') {
         const badge = item.isSettled ? `<span class="status-badge status-settled">精算済</span>` : `<span class="status-badge status-unsettled">未精算</span>`;
         const amountSign = item.amount > 0 ? '＋' : '';
-        return `
-          <div class="history-item special-bonus">
-            <strong>${item.date} [🏆 特別] : ${amountSign}${item.amount.toLocaleString()}円 ${badge}</strong><br>
-            <span style="color:#666;">${item.details}</span>
-            ${actionButtons}
-          </div>
-        `;
+        return `<div class="history-item special-bonus"><strong>${item.date} [🏆 特別] : ${amountSign}${item.amount.toLocaleString()}円 ${badge}</strong><br><span style="color:#666;">${item.details}</span>${actionButtons}</div>`;
       } else {
         const badge = item.isSettled ? `<span class="status-badge status-settled">精算済</span>` : `<span class="status-badge status-unsettled">未精算</span>`;
-        return `
-          <div class="history-item">
-            <strong>${item.date} [${item.score}] : ＋${item.amount.toLocaleString()}円 ${badge}</strong><br>
-            <span style="color:#666;">${item.details}</span>
-            ${actionButtons}
-          </div>
-        `;
+        return `<div class="history-item"><strong>${item.date} [${item.score}] : ＋${item.amount.toLocaleString()}円 ${badge}</strong><br><span style="color:#666;">${item.details}</span>${actionButtons}</div>`;
       }
     }).join('');
   }
 
-  updateUI();
+  // 初期表示処理
+  showDashboard();
 </script>
 </body>
 </html>
