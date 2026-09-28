@@ -7,53 +7,76 @@
   <style>
     body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f7; color: #333; margin: 0; padding: 10px; }
     .container { max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    
+    /* ヘッダー */
     header { background: #c8102e; color: #fff; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
     h1 { margin: 0; font-size: 1.5rem; }
     
-    /* 画面切り替え用のクラス */
+    /* 画面切り替え */
     .view-section { display: none; }
     .view-section.active { display: block; }
     
+    /* 金額表示 */
     .dashboard { display: flex; gap: 10px; margin-bottom: 20px; }
     .total-box { flex: 1; background: #e02030; color: #fff; padding: 15px; border-radius: 8px; text-align: center; }
     .unsettled-box { flex: 1; background: #333; color: #fff; padding: 15px; border-radius: 8px; text-align: center; }
     .amount-label { font-size: 0.9rem; margin-bottom: 5px; }
     .amount-value { font-size: 1.8rem; font-weight: bold; }
     
+    /* ボタン類 */
     .action-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
     .action-buttons button { flex: 1; padding: 15px; font-size: 1rem; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; color: #fff; }
     .btn-add-match { background: #00b2a9; }
     .btn-add-bonus { background: #fbc02d; color: #333 !important; }
-    
-    .section { border-bottom: 1px solid #eee; padding: 15px 0; }
-    .bonus-section { background-color: #fff9e6; border: 1px solid #ffe082; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-    .section h3, .bonus-section h3 { margin: 0 0 10px; font-size: 1.1rem; color: #c8102e; }
-    .bonus-section h3 { color: #d48b00; }
-    
-    label { display: block; margin-bottom: 8px; font-size: 0.95rem; font-weight: bold; }
-    select, input[type="number"], input[type="date"] { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
-    optgroup { font-weight: bold; color: #555; }
-    
-    .score-inputs { display: flex; gap: 15px; }
-    .score-inputs label { flex: 1; }
-    .checkbox-group label { display: block; margin-bottom: 10px; font-weight: normal; cursor: pointer; }
-    .checkbox-group input { transform: scale(1.2); margin-right: 8px; }
-    
-    .form-actions { margin-top: 25px; display: flex; flex-direction: column; gap: 10px; }
     button.submit-btn { width: 100%; background: #00b2a9; color: #fff; border: none; padding: 15px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
     button.submit-bonus-btn { width: 100%; background: #fbc02d; color: #333; border: none; padding: 15px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
     button.cancel-btn { width: 100%; background: #e0e0e0; color: #333; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
     button.settle-btn { width: 100%; background: #ffc107; color: #333; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
     
+    /* カレンダー */
+    .calendar { margin: 20px 0; background: #fff; border-radius: 8px; padding: 15px; border: 1px solid #eee; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .calendar-header button { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #c8102e; padding: 5px 10px; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+    .calendar-day-header { font-size: 0.8rem; color: #666; font-weight: bold; padding-bottom: 5px; }
+    .calendar-cell { border: 1px solid #eee; border-radius: 6px; padding: 5px 2px; min-height: 55px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; cursor: pointer; }
+    .calendar-cell.has-data { background-color: #fff9e6; border-color: #ffe082; }
+    .calendar-cell.today { border: 2px solid #00b2a9; }
+    .calendar-cell:active { background-color: #f0f0f0; }
+    .calendar-date { font-weight: bold; font-size: 0.85rem; margin-bottom: 2px; }
+    .calendar-badge { background: #c8102e; color: #fff; font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-sizing: border-box; }
+
+    /* モーダル (詳細ポップアップ) */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: #fff; width: 90%; max-width: 450px; border-radius: 12px; padding: 20px; max-height: 85vh; overflow-y: auto; position: relative; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+    .modal-header h3 { margin: 0; color: #c8102e; font-size: 1.1rem; }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; padding: 0 5px; }
+    
+    /* フォーム項目 */
+    .section { border-bottom: 1px solid #eee; padding: 15px 0; }
+    .bonus-section { background-color: #fff9e6; border: 1px solid #ffe082; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    .section h3, .bonus-section h3 { margin: 0 0 10px; font-size: 1.1rem; color: #c8102e; }
+    .bonus-section h3 { color: #d48b00; }
+    label { display: block; margin-bottom: 8px; font-size: 0.95rem; font-weight: bold; }
+    select, input[type="number"], input[type="date"] { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    optgroup { font-weight: bold; color: #555; }
+    .score-inputs { display: flex; gap: 15px; }
+    .score-inputs label { flex: 1; }
+    .checkbox-group label { display: block; margin-bottom: 10px; font-weight: normal; cursor: pointer; }
+    .checkbox-group input { transform: scale(1.2); margin-right: 8px; }
+    .form-actions { margin-top: 25px; display: flex; flex-direction: column; gap: 10px; }
+    
+    /* 履歴リスト */
     .history { margin-top: 20px; }
-    .history h3 { color: #333; border-bottom: 2px solid #c8102e; padding-bottom: 5px; margin-bottom: 15px; }
+    .history h3 { color: #333; border-bottom: 2px solid #c8102e; padding-bottom: 5px; margin-bottom: 15px; font-size: 1.1rem; }
     .history-item { background: #fafafa; border-left: 4px solid #c8102e; padding: 12px; border-radius: 4px; margin-bottom: 10px; font-size: 0.9rem; }
     .history-item.settlement { background: #fff3cd; border-left: 4px solid #ffc107; }
     .history-item.special-bonus { border-left: 4px solid #fbc02d; background: #fffde7; }
     .status-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
     .status-unsettled { background: #ffebee; color: #c8102e; }
     .status-settled { background: #e0f2f1; color: #00796b; }
-    
     .history-actions { margin-top: 10px; text-align: right; }
     .history-actions button { padding: 5px 12px; margin-left: 8px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; border: 1px solid #ccc; background: #fff; }
     .history-actions button.edit-btn { color: #00796b; border-color: #00796b; }
@@ -63,19 +86,21 @@
 <body>
 
 <div class="container">
-  <header>
-    <h1>Liverpool貯金</h1>
-  </header>
 
   <!-- ▼ 一覧（ダッシュボード）画面 ▼ -->
   <div id="view-dashboard" class="view-section active">
+    <!-- 🌟 ヘッダーをダッシュボード内のみに配置（入力画面では消えます） -->
+    <header>
+      <h1>Liverpool貯金</h1>
+    </header>
+
     <div class="dashboard">
       <div class="total-box">
         <div class="amount-label">シーズン累計</div>
         <div class="amount-value"><span id="totalDisplay">0</span> 円</div>
       </div>
       <div class="unsettled-box">
-        <div class="amount-label">未精算（今回まとめる額）</div>
+        <div class="amount-label">未精算（まとめ額）</div>
         <div class="amount-value"><span id="unsettledDisplay">0</span> 円</div>
       </div>
     </div>
@@ -87,8 +112,18 @@
       <button type="button" class="btn-add-bonus" onclick="openBonusForm()">🏆 特別ボーナス追加</button>
     </div>
 
+    <!-- 🌟 カレンダーUI -->
+    <div class="calendar">
+      <div class="calendar-header">
+        <button type="button" onclick="changeMonth(-1)">◀</button>
+        <h3 id="calendarMonth" style="margin:0; font-size:1.1rem; color:#333;"></h3>
+        <button type="button" onclick="changeMonth(1)">▶</button>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+
     <div class="history">
-      <h3>記録履歴</h3>
+      <h3>最近の記録 (直近10件)</h3>
       <div id="historyList"></div>
     </div>
   </div>
@@ -97,12 +132,13 @@
 
   <!-- ▼ 試合結果 入力・編集フォーム画面 ▼ -->
   <div id="view-match-form" class="view-section">
-    <h2 id="matchFormTitle" style="text-align:center; color:#c8102e; margin-top:0;">試合結果の入力</h2>
+    <h2 id="matchFormTitle" style="text-align:center; color:#c8102e; margin-top:10px;">試合結果の入力</h2>
     <form id="matchForm">
       <div class="section">
         <h3>① 試合結果</h3>
+        <!-- 🌟 試合日タブの幅を狭く（style="width: 160px;" を追加） -->
         <label>試合日
-          <input type="date" id="matchDate" required>
+          <input type="date" id="matchDate" required style="width: 160px;">
         </label>
         <label>大会
           <select id="competition">
@@ -157,10 +193,11 @@
 
   <!-- ▼ 特別ボーナス 入力・編集フォーム画面 ▼ -->
   <div id="view-bonus-form" class="view-section">
-    <h2 id="bonusFormTitle" style="text-align:center; color:#d48b00; margin-top:0;">特別ボーナスの入力</h2>
+    <h2 id="bonusFormTitle" style="text-align:center; color:#d48b00; margin-top:10px;">特別ボーナスの入力</h2>
     <div class="bonus-section">
+      <!-- 🌟 日付タブの幅を狭く -->
       <label>発生日
-        <input type="date" id="bonusDate" required>
+        <input type="date" id="bonusDate" required style="width: 160px;">
       </label>
       <label>項目を選択
         <select id="specialBonus">
@@ -196,15 +233,29 @@
 
 </div>
 
+<!-- 🌟 カレンダーの日付タップ用 モーダル(ポップアップ) -->
+<div id="dateModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalDateTitle">日付の詳細</h3>
+      <button class="close-btn" onclick="closeDateDetails()">×</button>
+    </div>
+    <div id="modalContentBody" class="modal-body">
+      <!-- ここに選択した日付の記録リストが入ります -->
+    </div>
+  </div>
+</div>
+
 <script>
   let logs = JSON.parse(localStorage.getItem('lfc_savings_26_27')) || [];
-  let editingIndex = -1; // -1:新規作成, 0以上:編集中のインデックス
+  let editingIndex = -1; 
+  let currentCalendarDate = new Date();
 
   // --- 画面切り替えロジック ---
   function showView(viewId) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
-    window.scrollTo(0, 0); // 画面トップへスクロール
+    window.scrollTo(0, 0); 
   }
 
   function showDashboard() {
@@ -213,7 +264,6 @@
     editingIndex = -1;
   }
 
-  // --- 日付のユーティリティ ---
   function getTodayString() {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -225,19 +275,13 @@
     const form = document.getElementById('matchForm');
     
     if (index === -1) {
-      // 新規入力時
       document.getElementById('matchFormTitle').textContent = '試合結果の記録';
       form.reset();
       document.getElementById('matchDate').value = getTodayString();
     } else {
-      // 編集時：保存されている rawData をフォームに復元する
       document.getElementById('matchFormTitle').textContent = '試合結果の編集';
       const log = logs[index];
-      if (!log.rawData) {
-        alert("このデータは古い形式で保存されているため、詳細フォームでの編集ができません。一度削除して入力し直してください。");
-        return;
-      }
-      
+      if (!log.rawData) { alert("古い形式のデータのため編集できません。"); return; }
       const r = log.rawData;
       document.getElementById('matchDate').value = r.matchDate || getTodayString();
       document.getElementById('competition').value = r.competition;
@@ -245,7 +289,6 @@
       document.getElementById('gf').value = r.gf;
       document.getElementById('ga').value = r.ga;
       document.getElementById('redCards').value = r.redCards;
-      
       document.getElementById('hattrick').checked = r.hattrick;
       document.getElementById('lateWinner').checked = r.lateWinner;
       document.getElementById('directFK').checked = r.directFK;
@@ -257,7 +300,6 @@
   }
 
   function saveMatch() {
-    // フォームの値を取得
     const matchDateStr = document.getElementById('matchDate').value || getTodayString();
     const comp = document.getElementById('competition').value;
     const opp = document.getElementById('opponent').value;
@@ -275,7 +317,6 @@
     let amount = 0;
     let details = [];
 
-    // 計算ロジック
     if (gf > ga) {
       amount += 500; details.push('勝利 (+500)');
       if (comp === 'CL') { amount += 500; details.push('CL勝利 (+500)'); }
@@ -305,19 +346,12 @@
     if (gomezGoal) { amount += 10000; details.push('ジョー・ゴメス弾 (+10,000)'); }
     if (redCards > 0) { amount += redCards * 500; details.push(`退場者x${redCards} (+${redCards * 500})`); }
 
-    // 後で編集できるように、入力元の生データ（rawData）も一緒に保存する
     const rawData = { matchDate: matchDateStr, competition: comp, opponent: opp, gf, ga, redCards, hattrick, lateWinner, directFK, academyGoal, pkStop, gomezGoal };
     const recordDate = new Date(matchDateStr).toLocaleDateString('ja-JP');
-
     const isSettled = editingIndex >= 0 ? logs[editingIndex].isSettled : false;
-
     const entry = { type: 'match', date: recordDate, score: `${gf} - ${ga}`, amount, details: details.join(' / '), isSettled, rawData };
 
-    if (editingIndex >= 0) {
-      logs[editingIndex] = entry; // 編集時は上書き
-    } else {
-      logs.unshift(entry); // 新規時は追加
-    }
+    if (editingIndex >= 0) { logs[editingIndex] = entry; } else { logs.unshift(entry); }
     
     saveData();
     showDashboard();
@@ -333,9 +367,7 @@
     } else {
       document.getElementById('bonusFormTitle').textContent = '特別ボーナスの編集';
       const log = logs[index];
-      if (!log.rawData) {
-        alert("このデータは古い形式のため詳細編集ができません。"); return;
-      }
+      if (!log.rawData) { alert("古い形式のため編集できません。"); return; }
       document.getElementById('bonusDate').value = log.rawData.bonusDate || getTodayString();
       document.getElementById('specialBonus').value = log.rawData.specialBonusValue;
     }
@@ -352,25 +384,18 @@
     const rawData = { bonusDate: bonusDateStr, specialBonusValue: rawVal };
     const recordDate = new Date(bonusDateStr).toLocaleDateString('ja-JP');
     const isSettled = editingIndex >= 0 ? logs[editingIndex].isSettled : false;
-
     const entry = { type: 'bonus', date: recordDate, score: 'ボーナス', amount, details, isSettled, rawData };
 
-    if (editingIndex >= 0) {
-      logs[editingIndex] = entry;
-    } else {
-      logs.unshift(entry);
-    }
+    if (editingIndex >= 0) { logs[editingIndex] = entry; } else { logs.unshift(entry); }
     
     saveData();
     showDashboard();
   }
 
-  // --- 共通の処理（精算・削除・保存・描画） ---
+  // --- カレンダー・モーダル・その他の処理 ---
   function executeSettlement() {
     const unsettledLogs = logs.filter(item => (item.type !== 'settlement' && !item.isSettled));
-    if (unsettledLogs.length === 0) {
-      alert("精算する未精算の記録がありません。"); return;
-    }
+    if (unsettledLogs.length === 0) { alert("精算する未精算の記録がありません。"); return; }
     const settleAmount = unsettledLogs.reduce((sum, item) => sum + item.amount, 0);
     
     if(confirm(`未精算額 ${settleAmount.toLocaleString()}円 を精算完了にしますか？`)) {
@@ -386,7 +411,7 @@
   }
 
   function editLogRouter(index) {
-    // データのタイプに応じて適切なフォームを開く
+    closeDateDetails(); // モーダルが開いていれば閉じる
     const type = logs[index].type;
     if (type === 'match') openMatchForm(index);
     else if (type === 'bonus') openBonusForm(index);
@@ -396,6 +421,7 @@
     if (confirm("この記録を削除してもよろしいですか？")) {
       logs.splice(index, 1);
       saveData();
+      closeDateDetails(); // モーダルが開いていれば閉じる
       showDashboard();
     }
   }
@@ -404,6 +430,112 @@
     localStorage.setItem('lfc_savings_26_27', JSON.stringify(logs));
   }
 
+  // 1件分のHTMLを生成する関数（履歴リストとモーダルの両方で使う）
+  function generateHistoryItemHTML(item, index) {
+    let actionButtons = '';
+    if (item.type !== 'settlement' && !item.isSettled) {
+      actionButtons = `
+        <div class="history-actions">
+          <button type="button" class="edit-btn" onclick="editLogRouter(${index})">✏️ 編集</button>
+          <button type="button" class="delete-btn" onclick="deleteLog(${index})">🗑️ 削除</button>
+        </div>
+      `;
+    }
+
+    if (item.type === 'settlement') {
+      return `<div class="history-item settlement"><strong>${item.date} : 💰 精算完了 ＋${item.amount.toLocaleString()}円</strong><br><span style="color:#666;">${item.details}</span>${actionButtons}</div>`;
+    } else if (item.type === 'bonus') {
+      const badge = item.isSettled ? `<span class="status-badge status-settled">精算済</span>` : `<span class="status-badge status-unsettled">未精算</span>`;
+      const amountSign = item.amount > 0 ? '＋' : '';
+      return `<div class="history-item special-bonus"><strong>${item.date} [🏆 特別] : ${amountSign}${item.amount.toLocaleString()}円 ${badge}</strong><br><span style="color:#666;">${item.details}</span>${actionButtons}</div>`;
+    } else {
+      const badge = item.isSettled ? `<span class="status-badge status-settled">精算済</span>` : `<span class="status-badge status-unsettled">未精算</span>`;
+      return `<div class="history-item"><strong>${item.date} [${item.score}] : ＋${item.amount.toLocaleString()}円 ${badge}</strong><br><span style="color:#666;">${item.details}</span>${actionButtons}</div>`;
+    }
+  }
+
+  // カレンダーを描画
+  function renderCalendar() {
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+    
+    document.getElementById('calendarMonth').textContent = `${year}年 ${month + 1}月`;
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    
+    let html = `
+      <div class="calendar-day-header">日</div><div class="calendar-day-header">月</div><div class="calendar-day-header">火</div>
+      <div class="calendar-day-header">水</div><div class="calendar-day-header">木</div><div class="calendar-day-header">金</div><div class="calendar-day-header">土</div>
+    `;
+    
+    for (let i = 0; i < firstDay; i++) {
+      html += `<div class="calendar-cell" style="border:none; background:transparent;"></div>`;
+    }
+    
+    const todayStr = new Date().toDateString();
+
+    for (let d = 1; d <= lastDate; d++) {
+      const dateObj = new Date(year, month, d);
+      const dateStrForCompare = dateObj.toDateString();
+      
+      // その日のログを検索
+      const daysLogs = logs.filter(item => new Date(item.date).toDateString() === dateStrForCompare);
+      const amountSum = daysLogs.reduce((sum, item) => sum + item.amount, 0);
+      
+      let cellClass = "calendar-cell";
+      let badgeHtml = "";
+      
+      if (daysLogs.length > 0) {
+        cellClass += " has-data";
+        const sign = amountSum >= 0 ? '+' : '';
+        badgeHtml = `<div class="calendar-badge">${sign}${amountSum.toLocaleString()}</div>`;
+      }
+      if (dateStrForCompare === todayStr) { cellClass += " today"; }
+      
+      html += `<div class="${cellClass}" onclick="openDateDetails('${year}/${month+1}/${d}')">
+        <div class="calendar-date">${d}</div>
+        ${badgeHtml}
+      </div>`;
+    }
+    document.getElementById('calendarGrid').innerHTML = html;
+  }
+
+  function changeMonth(diff) {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + diff);
+    renderCalendar();
+  }
+
+  // カレンダーの日付タップ時にモーダルを開く
+  function openDateDetails(dateStr) {
+    const targetDateObj = new Date(dateStr);
+    document.getElementById('modalDateTitle').textContent = `${targetDateObj.getFullYear()}年${targetDateObj.getMonth()+1}月${targetDateObj.getDate()}日 の記録`;
+    const targetDateString = targetDateObj.toDateString();
+    
+    let html = '';
+    let count = 0;
+    
+    // 一致する日付のログを探してHTML生成（indexは本来の配列位置を渡す）
+    logs.forEach((item, index) => {
+      if (new Date(item.date).toDateString() === targetDateString) {
+        html += generateHistoryItemHTML(item, index);
+        count++;
+      }
+    });
+
+    if (count === 0) {
+      html = `<p style="text-align:center; color:#666; margin: 30px 0;">この日の記録はありません。</p>`;
+    }
+    
+    document.getElementById('modalContentBody').innerHTML = html;
+    document.getElementById('dateModal').classList.add('active');
+  }
+
+  function closeDateDetails() {
+    document.getElementById('dateModal').classList.remove('active');
+  }
+
+  // 画面全体の描画更新
   function updateUI() {
     const matchLogs = logs.filter(item => item.type !== 'settlement');
     const total = matchLogs.reduce((sum, item) => sum + item.amount, 0);
@@ -412,29 +544,12 @@
     document.getElementById('totalDisplay').textContent = total.toLocaleString();
     document.getElementById('unsettledDisplay').textContent = unsettled.toLocaleString();
 
-    const historyEl = document.getElementById('historyList');
-    historyEl.innerHTML = logs.map((item, index) => {
-      let actionButtons = '';
-      if (item.type !== 'settlement' && !item.isSettled) {
-        actionButtons = `
-          <div class="history-actions">
-            <button type="button" class="edit-btn" onclick="editLogRouter(${index})">✏️ 編集</button>
-            <button type="button" class="delete-btn" onclick="deleteLog(${index})">🗑️ 削除</button>
-          </div>
-        `;
-      }
+    // カレンダーの更新
+    renderCalendar();
 
-      if (item.type === 'settlement') {
-        return `<div class="history-item settlement"><strong>${item.date} : 💰 精算完了 ＋${item.amount.toLocaleString()}円</strong><br><span style="color:#666;">${item.details}</span>${actionButtons}</div>`;
-      } else if (item.type === 'bonus') {
-        const badge = item.isSettled ? `<span class="status-badge status-settled">精算済</span>` : `<span class="status-badge status-unsettled">未精算</span>`;
-        const amountSign = item.amount > 0 ? '＋' : '';
-        return `<div class="history-item special-bonus"><strong>${item.date} [🏆 特別] : ${amountSign}${item.amount.toLocaleString()}円 ${badge}</strong><br><span style="color:#666;">${item.details}</span>${actionButtons}</div>`;
-      } else {
-        const badge = item.isSettled ? `<span class="status-badge status-settled">精算済</span>` : `<span class="status-badge status-unsettled">未精算</span>`;
-        return `<div class="history-item"><strong>${item.date} [${item.score}] : ＋${item.amount.toLocaleString()}円 ${badge}</strong><br><span style="color:#666;">${item.details}</span>${actionButtons}</div>`;
-      }
-    }).join('');
+    // ダッシュボードの履歴は直近10件だけ表示してスッキリさせる
+    const historyEl = document.getElementById('historyList');
+    historyEl.innerHTML = logs.slice(0, 10).map((item, index) => generateHistoryItemHTML(item, index)).join('');
   }
 
   // 初期表示処理
